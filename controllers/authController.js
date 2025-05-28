@@ -69,33 +69,49 @@ const logout = (req, res) => {
 
 const signup = async (req, res) => {
     try {
-      const { username, email, password } = req.body;
-  
-      // Vérifier si l'utilisateur existe déjà
-      const existingUser = await User.findOne({ where: { email } });
-      if (existingUser) {
-        return res.status(400).json({ message: "Cet email est déjà utilisé." });
-      }
-  
-      // Hachage du mot de passe
-      const hashedPassword = await bcrypt.hash(password, 10);
-      
-      // Création de l'utilisateur
-      const newUser = await User.create({
-        username,
-        email,
-        password: hashedPassword,
-        roleId: 1,
-      });
+        const { username, email, password } = req.body;
+    
+        if (!username || username.length < 3) {
+        return res.status(400).json({ message: "Le nom d'utilisateur doit contenir au moins 3 caractères." });
+        }
 
-      // Créer automatiquement un userStat 
-      await UserStat.create({ wins:0, losses:0, draws:0, score:0, UserId: newUser.id });
-      const token = generateToken(newUser);
-      return res.status(201).json({ message: 'Utilisateur créé avec succès.', token, newUser });
-    } catch (error) {
-      return res.status(500).json({ message: "Erreur lors de l'inscription." });
-    }
-  };
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!email || !emailRegex.test(email)) {
+        return res.status(400).json({ message: "Adresse email invalide." });
+        }
+
+        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
+        if (!password || !passwordRegex.test(password)) {
+        return res.status(400).json({
+            message: "Le mot de passe doit contenir au moins 8 caractères, une majuscule, une minuscule, un chiffre et un caractère spécial."
+        });
+        }
+
+        // Vérifier si l'utilisateur existe déjà
+        const existingUser = await User.findOne({ where: { email } });
+        if (existingUser) {
+            return res.status(400).json({ message: "Cet email est déjà utilisé." });
+        }
+    
+        // Hachage du mot de passe
+        const hashedPassword = await bcrypt.hash(password, 10);
+        
+        // Création de l'utilisateur
+        const newUser = await User.create({
+            username,
+            email,
+            password: hashedPassword,
+            roleId: 1,
+        });
+
+        // Créer automatiquement un userStat 
+        await UserStat.create({ wins:0, losses:0, draws:0, score:0, UserId: newUser.id });
+        const token = generateToken(newUser);
+        return res.status(201).json({ message: 'Utilisateur créé avec succès.', token, newUser });
+        } catch (error) {
+        return res.status(500).json({ message: "Erreur lors de l'inscription." });
+        }
+    };
 
   const changePassword = async (req, res) => {
     try {

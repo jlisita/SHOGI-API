@@ -28,6 +28,14 @@ module.exports = (sequelize, models) => {
             password: {
                 type: DataTypes.STRING,
                 allowNull: false,
+                 validate: {
+                isStrongEnough(value) {
+                const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z\d]).{8,}$/;
+                if (!regex.test(value)) {
+                    throw new Error("Le mot de passe doit comporter au moins 8 caractères, dont une majuscule, une minuscule, un chiffre et un caractère spécial.");
+                }
+                },
+            },
             },
             country: {
                 type: DataTypes.STRING,
