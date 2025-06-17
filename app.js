@@ -10,25 +10,23 @@ const port = process.env.PORT || 3000;
 
 require("./db/sequelizeSetup");
   
-const allowedOrigins = ['https://shogiconnect.netlify.app', 'http://localhost:5173'];
+const allowedOrigins = [
+  'http://localhost:5174',
+  'https://shogiconnect.netlify.app'
+];
 
-app.use((req, res, next) => {
-    const origin = req.headers.origin;
-    if (allowedOrigins.includes(origin)) {
-        res.setHeader('Access-Control-Allow-Origin', origin);
+const corsOptions = {
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
     }
+  },
+  credentials: true
+};
 
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-    res.setHeader('Access-Control-Allow-Credentials', 'true');
-
-    // Pré-vol OPTIONS
-    if (req.method === 'OPTIONS') {
-        return res.sendStatus(200);
-    }
-
-    next();
-});
+app.use(cors(corsOptions));
 
 app
     .use(express.json())
